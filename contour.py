@@ -15,13 +15,21 @@ while True:
     green = frame[..., 1]
     red = frame[..., 2]
 
-    mask1 = blue > green
+    mask1 = red > blue * 1.1
     idx = (mask1 == 0)
     image[idx] = 0
 
-    mask2 = blue > red
+    mask2 = red > green * 1.1
     idx = (mask2 == 0)
     image[idx] = 0
+
+    # mask1 = blue > green
+    # idx = (mask1 == 0)
+    # image[idx] = 0
+    #
+    # mask2 = blue > red
+    # idx = (mask2 == 0)
+    # image[idx] = 0
 
     mask = np.sum(image, axis=-1) > 0
     mask = mask.astype('uint8') * 255
@@ -35,24 +43,19 @@ while True:
 
         approx = cv2.approxPolyDP(cnt, 0.01 * cv2.arcLength(cnt, True), True)
         area = cv2.contourArea(cnt)
-        # if area < 50:
-        #     continue
-        if len(approx) == 5:
-            # print("pentagon")
-            cv2.drawContours(ct, [cnt], 0, 255, -1)
-        elif len(approx) == 3:
-            # print("triangle")
-            cv2.drawContours(ct, [cnt], 0, (0, 255, 0), -1)
-        elif len(approx) == 4:
-            # print("square")
-            print(area)
-            cv2.drawContours(ct, [cnt], 0, (0, 0, 255), -1)
-        elif len(approx) == 9:
-            # print("half-circle")
-            cv2.drawContours(ct, [cnt], 0, (255, 255, 0), -1)
-        elif len(approx) > 15:
-            # print("circle")
-            cv2.drawContours(ct, [cnt], 0, (0, 255, 255), -1)
+        if area < 10000:
+            continue
+        print(area)
+        x = approx[..., 0]
+        y = approx[..., 1]
+        xmin = min(x)
+        xmax = max(x)
+        ymin = min(y)
+        ymax = max(y)
+        cv2.drawContours(ct, [cnt], 0, 255, 2)
+        cv2.rectangle(ct,
+                      (xmin, ymin),
+                      (xmax, ymax), (0, 255, 0), 2)
 
     cv2.imshow('filtered', image)
     cv2.imshow('raw', frame)
