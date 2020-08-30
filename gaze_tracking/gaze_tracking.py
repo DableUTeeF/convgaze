@@ -53,14 +53,20 @@ class GazeTracking(object):
             self.eye_left = None
             self.eye_right = None
 
-    def refresh(self, frame):
+    def refresh(self, frame, roi=None):
         """Refreshes the frame and analyzes it.
 
         Arguments:
             frame (numpy.ndarray): The frame to analyze
+            roi : region of interest
         """
-        self.frame = frame
-        self._analyze()
+        if roi:
+            self.frame = roi
+            self._analyze()
+            self.frame = frame
+        else:
+            self.frame = frame
+            self._analyze()
 
     def pupil_left_coords(self):
         """Returns the coordinates of the left pupil"""
