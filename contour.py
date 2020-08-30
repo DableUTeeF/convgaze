@@ -9,26 +9,56 @@ while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
     image = frame.copy()
+    ct = frame.copy()
     # Display the resulting frame
     blue = frame[..., 0]
     green = frame[..., 1]
     red = frame[..., 2]
 
-    mask = cv2.inRange(blue, 50, 255)
-    output = cv2.bitwise_and(image, image, mask=mask)
+    mask1 = blue > green
+    idx = (mask1 == 0)
+    image[idx] = 0
 
-    mask = cv2.inRange(red, 0, 50)  # todo: should be 100/150 with better plate
-    output = cv2.bitwise_and(output, image, mask=mask)
-    mask = cv2.inRange(green, 0, 80)
-    output = cv2.bitwise_and(output, image, mask=mask)
+    mask2 = blue > red
+    idx = (mask2 == 0)
+    image[idx] = 0
 
-    kernel = np.ones((5, 5), np.uint8)
-    output = cv2.erode(output, kernel)
+    mask = np.sum(image, axis=-1) > 0
+    mask = mask.astype('uint8') * 255
 
-    output = cv2.dilate(output, kernel)
+    # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # _, thresh = cv2.threshold(gray, 127, 255, 1)
+    #
+    # _, contours, h = cv2.findContours(thresh, 1, 2)
+    _, contours, h = cv2.findContours(mask, 1, 2)
+    for cnt in contours:
 
-    cv2.imshow('filtered', output)
+        approx = cv2.approxPolyDP(cnt, 0.01 * cv2.arcLength(cnt, True), True)
+        area = cv2.contourArea(cnt)
+        # if area < 50:
+        #     continue
+        if len(approx) == 5:
+            # print("pentagon")
+            cv2.drawContours(ct, [cnt], 0, 255, -1)
+        elif len(approx) == 3:
+            # print("triangle")
+            cv2.drawContours(ct, [cnt], 0, (0, 255, 0), -1)
+        elif len(approx) == 4:
+            # print("square")
+            print(area)
+            cv2.drawContours(ct, [cnt], 0, (0, 0, 255), -1)
+        elif len(approx) == 9:
+            # print("half-circle")
+            cv2.drawContours(ct, [cnt], 0, (255, 255, 0), -1)
+        elif len(approx) > 15:
+            # print("circle")
+            cv2.drawContours(ct, [cnt], 0, (0, 255, 255), -1)
+
+    cv2.imshow('filtered', image)
     cv2.imshow('raw', frame)
+    cv2.imshow('contour', ct)
+    cv2.imshow('maskgreen', mask1.astype('uint8') * 255)
+    cv2.imshow('maskred', mask2.astype('uint8') * 255)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
     # cv2.waitKey(1)
