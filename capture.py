@@ -7,7 +7,7 @@ import cv2
 from gaze_tracking import GazeTracking
 import numpy as np
 import os
-
+import time
 
 def save(loc):
     os.makedirs('output', exist_ok=True)
@@ -22,6 +22,14 @@ def save(loc):
 
 
 if __name__ == '__main__':
+    images = []
+    pth = r'/home/root1/Downloads/PrototypePage/PrototypePage/Pics'
+    for files in os.listdir(pth):
+        image = cv2.imread(os.path.join(pth, files))
+        image = cv2.resize(image, (320, 540))
+        images.append(image)
+    dummy = np.zeros((1080, 1920, 3), dtype='uint8')
+
     gaze = GazeTracking()
     webcam = cv2.VideoCapture(0)
     webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
@@ -29,6 +37,7 @@ if __name__ == '__main__':
     n = 0
     if os.path.exists('output'):
         n = len(os.listdir('output')) // 2
+    last_time = True
     while True:
         # We get a new frame from the webcam
         _, frame = webcam.read()
@@ -117,4 +126,14 @@ if __name__ == '__main__':
         elif key == ord('h'):
             save(11)
         cv2.imshow("Demo", frame)
+        if last_time:
+            last_time = False
+            for i in range(6):
+                for j in range(2):
+                    image = images[np.random.randint(0, len(images) - 1)]
+                    x = (i * 320, (i + 1) * 320)
+                    y = (j * 540, (j + 1) * 540)
+                    dummy[y[0]:y[1], x[0]:x[1], :] = image
+        cv2.imshow('d', dummy)
+
 
