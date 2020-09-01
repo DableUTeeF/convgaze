@@ -9,9 +9,14 @@ import numpy as np
 import os
 import time
 
+
 def save(loc):
     os.makedirs('output', exist_ok=True)
-    global n
+    global n, xmin, gaze, left_pupil
+    if xmin is None:
+        return
+    if left_pupil is None:
+        return
     cv2.imwrite(f'output/{loc}_{n}.jpg', raw)
     with open(f'output/{loc}_{n}.txt', 'w') as wr:
         wr.write(f'{left_pupil[0]},{left_pupil[1]},{right_pupil[0]},{right_pupil[1]}\n')
@@ -38,6 +43,8 @@ if __name__ == '__main__':
     if os.path.exists('output'):
         n = len(os.listdir('output')) // 2
     last_time = True
+    cv2.namedWindow("d", cv2.WND_PROP_FULLSCREEN)
+    cv2.setWindowProperty("d", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     while True:
         # We get a new frame from the webcam
         _, frame = webcam.read()
