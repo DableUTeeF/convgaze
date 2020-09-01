@@ -39,16 +39,16 @@ while True:
     blue = frame[..., 0]
     green = frame[..., 1]
     red = frame[..., 2]
-    mask1 = blue > red * 1.1
+    mask1 = green > red * 2.5
     idx = (mask1 == 0)
     image[idx] = 0
-    mask2 = blue > green * 1.1
+    mask2 = green > blue * 1.1
     idx = (mask2 == 0)
     image[idx] = 0
     mask = np.sum(image, axis=-1) > 0
     mask = mask.astype('uint8') * 255
 
-    _, contours, h = cv2.findContours(mask, 1, 2)
+    contours, h = cv2.findContours(mask, 1, 2)
     xmin = None
     xmax = None
     ymin = None
@@ -77,22 +77,26 @@ while True:
         cv2.imwrite(f'output/{n}.jpg', raw)
         with open(f'output/{n}.txt', 'w') as wr:
             wr.write(f'{left_pupil[0]},{left_pupil[1]},{right_pupil[0]},{right_pupil[1]}\n')
+            wr.write(f'{gaze.eye_left.center[0]},{gaze.eye_left.center[1]},{gaze.eye_right.center[0]},{gaze.eye_right.center[1]}\n')
             wr.write(f'{xmin},{ymin},{xmax},{ymax}')
         n += 1
     elif key == ord('q'):
         cv2.imwrite(f'output/0_{n}.jpg', raw)
         with open(f'output/0_{n}.txt', 'w') as wr:
             wr.write(f'{left_pupil[0]},{left_pupil[1]},{right_pupil[0]},{right_pupil[1]}\n')
+            wr.write(f'{gaze.eye_left.center[0]},{gaze.eye_left.center[1]},{gaze.eye_right.center[0]},{gaze.eye_right.center[1]}\n')
             wr.write(f'{xmin},{ymin},{xmax},{ymax}')
     elif key == ord('w'):
         cv2.imwrite(f'output/1_{n}.jpg', raw)
         with open(f'output/1_{n}.txt', 'w') as wr:
             wr.write(f'{left_pupil[0]},{left_pupil[1]},{right_pupil[0]},{right_pupil[1]}\n')
+            wr.write(f'{gaze.eye_left.center[0]},{gaze.eye_left.center[1]},{gaze.eye_right.center[0]},{gaze.eye_right.center[1]}\n')
             wr.write(f'{xmin},{ymin},{xmax},{ymax}')
     elif key == ord('a'):
         cv2.imwrite(f'output/4_{n}.jpg', raw)
         with open(f'output/4_{n}.txt', 'w') as wr:
             wr.write(f'{left_pupil[0]},{left_pupil[1]},{right_pupil[0]},{right_pupil[1]}\n')
+            wr.write(f'{gaze.eye_left.center[0]},{gaze.eye_left.center[1]},{gaze.eye_right.center[0]},{gaze.eye_right.center[1]}\n')
             wr.write(f'{xmin},{ymin},{xmax},{ymax}')
     cv2.imshow("Demo", frame)
 
