@@ -14,10 +14,10 @@ while True:
     blue = frame[..., 0]
     green = frame[..., 1]
     red = frame[..., 2]
-    mask1 = blue > red * 1.1
+    mask1 = green > red * 2.5
     idx = (mask1 == 0)
     image[idx] = 0
-    mask2 = blue > green * 1.1
+    mask2 = green > blue * 1.1
     idx = (mask2 == 0)
     image[idx] = 0
     mask = np.sum(image, axis=-1) > 0
@@ -28,8 +28,9 @@ while True:
 
         approx = cv2.approxPolyDP(cnt, 0.01 * cv2.arcLength(cnt, True), True)
         area = cv2.contourArea(cnt)
-        if area < 20000:
+        if area < 2000 or len(approx) != 4:
             continue
+        print(len(approx))
         x = approx[..., 0]
         y = approx[..., 1]
         xmin = min(x)[0]
@@ -41,15 +42,6 @@ while True:
                       (xmin, ymin),
                       (xmax, ymax), (0, 255, 0), 2)
 
-    roi = frame.copy()
-    gaze.refresh(roi)
-    roi = gaze.annotated_frame()
-    left_pupil = gaze.pupil_left_coords()
-    right_pupil = gaze.pupil_right_coords()
-    print(left_pupil)
-    print(right_pupil)
-
-    cv2.imshow('roi', roi)
     cv2.imshow('filtered', image)
     cv2.imshow('raw', frame)
     cv2.imshow('contour', ct)

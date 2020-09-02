@@ -91,7 +91,7 @@ if __name__ == '__main__':
         for cnt in contours:
             approx = cv2.approxPolyDP(cnt, 0.01 * cv2.arcLength(cnt, True), True)
             area = cv2.contourArea(cnt)
-            if area < 20000:
+            if area < 2000 or len(approx) != 4:
                 continue
             x = approx[..., 0]
             y = approx[..., 1]
