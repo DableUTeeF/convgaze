@@ -148,7 +148,7 @@ if __name__ == '__main__':
             # cv2.imshow("Demo", frame)
             if last_time:
                 last_time = False
-                for i in range(6):
+                for i in range(3):
                     for j in range(2):
                         image = images[np.random.randint(0, len(images) - 1)]
                         x = (i * 320, (i + 1) * 320)
