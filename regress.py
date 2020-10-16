@@ -8,17 +8,17 @@ import numpy as np
 def get_data():
     x = []
     y = []
-    for files in os.listdir('output/4 tiles'):
+    for files in os.listdir('output/'):
         if 'jpg' in files:
             continue
         obj = []
         cls, no = files.split('_')
         y.append(cls)
-        txt = open(os.path.join('output/4 tiles', files)).read().split('\n')
+        txt = open(os.path.join('output/', files)).read().split('\n')
         # eye_center = txt[1]
         # pupil_coords = txt[2]
         # box = txt[3]
-        for line in txt[1:]:
+        for line in txt:
             if line != '':
                 a, b, c, d = line.split(',')
                 obj.extend((float(a), float(b), float(c), float(d)))
