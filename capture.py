@@ -12,6 +12,7 @@ import time
 duration = 0.1  # seconds
 freq = 440  # Hz
 
+
 def save(loc):
     os.makedirs('output', exist_ok=True)
     global n, xmin, gaze, left_pupil
