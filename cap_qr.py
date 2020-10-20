@@ -16,23 +16,26 @@ freq = 440  # Hz
 def save(loc):
     os.makedirs('output', exist_ok=True)
     global n, gaze, left_pupil
-    if left_qr is None:
-        return
-    if right_qr is None:
-        return
-    if left_pupil is None:
-        return
-    cv2.imwrite(f'output/{loc}_{n}.jpg', raw)
-    with open(f'output/{loc}_{n}.txt', 'w') as wr:
-        # wr.write(f'{left_pupil[0]},{left_pupil[1]},{right_pupil[0]},{right_pupil[1]}\n')
-        wr.write(f'{gaze.eye_left.center[0]},{gaze.eye_left.center[1]},{gaze.eye_right.center[0]},{gaze.eye_right.center[1]}\n')
-        wr.write(f'{gaze.pupil_left_coords()[0]},{gaze.pupil_left_coords()[1]},{gaze.pupil_right_coords()[0]},{gaze.pupil_right_coords()[1]}\n')
-        wr.write(f'{left_qr[0][0]},{left_qr[0][1]},{left_qr[1][0]},{left_qr[1][1]}\n')
-        wr.write(f'{left_qr[2][0]},{left_qr[2][1]},{left_qr[3][0]},{left_qr[3][1]}\n')
-        wr.write(f'{right_qr[0][0]},{right_qr[0][1]},{right_qr[1][0]},{right_qr[1][1]}\n')
-        wr.write(f'{right_qr[2][0]},{right_qr[2][1]},{right_qr[3][0]},{right_qr[3][1]}\n')
-    n += 1
-    os.system('play -nq -t alsa synth {} sine {}'.format(duration, freq))
+    try:
+        if left_qr is None:
+            return
+        if right_qr is None:
+            return
+        if left_pupil is None:
+            return
+        cv2.imwrite(f'output/{loc}_{n}.jpg', raw)
+        with open(f'output/{loc}_{n}.txt', 'w') as wr:
+            # wr.write(f'{left_pupil[0]},{left_pupil[1]},{right_pupil[0]},{right_pupil[1]}\n')
+            wr.write(f'{gaze.eye_left.center[0]},{gaze.eye_left.center[1]},{gaze.eye_right.center[0]},{gaze.eye_right.center[1]}\n')
+            wr.write(f'{gaze.pupil_left_coords()[0]},{gaze.pupil_left_coords()[1]},{gaze.pupil_right_coords()[0]},{gaze.pupil_right_coords()[1]}\n')
+            wr.write(f'{left_qr[0][0]},{left_qr[0][1]},{left_qr[1][0]},{left_qr[1][1]}\n')
+            wr.write(f'{left_qr[2][0]},{left_qr[2][1]},{left_qr[3][0]},{left_qr[3][1]}\n')
+            wr.write(f'{right_qr[0][0]},{right_qr[0][1]},{right_qr[1][0]},{right_qr[1][1]}\n')
+            wr.write(f'{right_qr[2][0]},{right_qr[2][1]},{right_qr[3][0]},{right_qr[3][1]}\n')
+        n += 1
+        os.system('play -nq -t alsa synth {} sine {}'.format(duration, freq))
+    except IndexError:
+        pass
 
 
 if __name__ == '__main__':
