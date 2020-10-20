@@ -88,7 +88,6 @@ if __name__ == '__main__':
                   left_qr[2][0], left_qr[2][1], left_qr[3][0], left_qr[3][1],
                   right_qr[0][0], right_qr[0][1], right_qr[1][0], right_qr[1][1],
                   right_qr[2][0], right_qr[2][1], right_qr[3][0], right_qr[3][1],
-
                   ]]
             y_pred = model.predict(x)
             z = np.round(y_pred)[0]

@@ -7,7 +7,7 @@ import cv2
 from gaze_tracking import GazeTracking
 import numpy as np
 import os
-import time
+from sklearn.linear_model import LinearRegression
 
 duration = 0.1  # seconds
 freq = 440  # Hz
@@ -34,8 +34,19 @@ def save(loc):
             wr.write(f'{right_qr[2][0]},{right_qr[2][1]},{right_qr[3][0]},{right_qr[3][1]}\n')
         n += 1
         os.system('play -nq -t alsa synth {} sine {}'.format(duration, freq))
+        x = [[gaze.eye_left.center[0], gaze.eye_left.center[1], gaze.eye_right.center[0], gaze.eye_right.center[1],
+              gaze.pupil_left_coords()[0], gaze.pupil_left_coords()[1], gaze.pupil_right_coords()[0], gaze.pupil_right_coords()[1],
+              left_qr[0][0], left_qr[0][1], left_qr[1][0], left_qr[1][1],
+              left_qr[2][0], left_qr[2][1], left_qr[3][0], left_qr[3][1],
+              right_qr[0][0], right_qr[0][1], right_qr[1][0], right_qr[1][1],
+              right_qr[2][0], right_qr[2][1], right_qr[3][0], right_qr[3][1],
+              ]]
+        y = loc
+        return x, y
     except IndexError:
-        pass
+        x = None
+        y = None
+        return x, y
 
 
 if __name__ == '__main__':
@@ -45,7 +56,13 @@ if __name__ == '__main__':
         image = cv2.imread(os.path.join(pth, files))
         image = cv2.resize(image, (320, 540))
         images.append(image)
-    dummy = np.zeros((1080, 1920, 3), dtype='uint8')
+    raw_show = np.zeros((1080, 1920, 3), dtype='uint8')
+    for i in range(6):
+        for j in range(2):
+            image = images[np.random.randint(0, len(images) - 1)]
+            x = (i * 320, (i + 1) * 320)
+            y = (j * 540, (j + 1) * 540)
+            raw_show[y[0]:y[1], x[0]:x[1], :] = image
 
     gaze = GazeTracking()
     webcam = cv2.VideoCapture(0)
@@ -58,6 +75,10 @@ if __name__ == '__main__':
     cv2.namedWindow("d", cv2.WND_PROP_FULLSCREEN)
     cv2.setWindowProperty("d", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     detector = cv2.QRCodeDetector()
+    x = []
+    y = []
+    model = LinearRegression()
+    trained = False
     while True:
         # We get a new frame from the webcam
         _, frame = webcam.read()
@@ -110,45 +131,70 @@ if __name__ == '__main__':
                              (*qrcode[2],),
                              (*qrcode[3],), (0, 0, 255), 8)
 
+            x1, y1 = None, None
             key = cv2.waitKey(1)
             if key == 27:
                 break
             elif key == ord('q'):
-                save(0)
+                x1, y1 = save(0)
             elif key == ord('w'):
-                save(1)
+                x1, y1 = save(1)
             elif key == ord('e'):
-                save(2)
+                x1, y1 = save(2)
             elif key == ord('r'):
-                save(3)
+                x1, y1 = save(3)
             elif key == ord('t'):
-                save(4)
+                x1, y1 = save(4)
             elif key == ord('y'):
-                save(5)
+                x1, y1 = save(5)
             elif key == ord('a'):
-                save(6)
+                x1, y1 = save(6)
             elif key == ord('s'):
-                save(7)
+                x1, y1 = save(7)
             elif key == ord('d'):
-                save(8)
+                x1, y1 = save(8)
             elif key == ord('f'):
-                save(9)
+                x1, y1 = save(9)
             elif key == ord('g'):
-                save(10)
+                x1, y1 = save(10)
             elif key == ord('h'):
-                save(11)
-            # cv2.imshow("Demo", frame)
-            if last_time:
-                last_time = False
-                for i in range(6):
-                    for j in range(2):
-                        image = images[np.random.randint(0, len(images) - 1)]
-                        x = (i * 320, (i + 1) * 320)
-                        y = (j * 540, (j + 1) * 540)
-                        dummy[y[0]:y[1], x[0]:x[1], :] = image
-            frame = cv2.resize(frame, (640, 360))
-            cv2.line(frame, (320, 0), (320, 360), (0, 255, 255))
-            dummy[50:410, :640] = frame
-            cv2.imshow('d', dummy)
+                x1, y1 = save(11)
+            elif key == ord('l'):
+                model = LinearRegression()
+                model.fit(x, y)
+                trained = True
+            if x1 is not None:
+                x.append(x1)
+                y.append(y1)
+            if trained:
+                try:
+                    x = [[gaze.eye_left.center[0], gaze.eye_left.center[1], gaze.eye_right.center[0], gaze.eye_right.center[1],
+                          gaze.pupil_left_coords()[0], gaze.pupil_left_coords()[1], gaze.pupil_right_coords()[0], gaze.pupil_right_coords()[1],
+                          left_qr[0][0], left_qr[0][1], left_qr[1][0], left_qr[1][1],
+                          left_qr[2][0], left_qr[2][1], left_qr[3][0], left_qr[3][1],
+                          right_qr[0][0], right_qr[0][1], right_qr[1][0], right_qr[1][1],
+                          right_qr[2][0], right_qr[2][1], right_qr[3][0], right_qr[3][1],
+                          ]]
+                    y_pred = model.predict(x)
+                    z = np.round(y_pred)[0]
+                    print(z)
+                    j = z // 6
+                    i = z % 6
+                    x = (i * 320, (i + 1) * 320)
+                    y = (j * 540, (j + 1) * 540)
+                    dummy = raw_show.copy()
+                    dummy[y[0]:y[1], x[0]:x[1], 0] = 0
+                    dummy[y[0]:y[1], x[0]:x[1], 1] = 0
+                    dummy[y[0]:y[1], x[0]:x[1], 2] = 255
+                    frame = cv2.resize(frame, (640, 360))
+                    cv2.line(frame, (320, 0), (320, 360), (0, 255, 255))
+                except:
+                    pass
+            else:
+                dummy = raw_show.copy()
+                frame = cv2.resize(frame, (640, 360))
+                cv2.line(frame, (320, 0), (320, 360), (0, 255, 255))
+                dummy[50:410, :640] = frame
+                cv2.imshow('d', dummy)
         except ZeroDivisionError:
             pass
