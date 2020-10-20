@@ -16,14 +16,13 @@ if __name__ == '__main__':
 
     model = LinearRegression()
     model.fit(x, y)
-    dummy = np.zeros((1080, 1920, 3), dtype='uint8')
+    raw_show = np.zeros((1080, 1920, 3), dtype='uint8')
     for i in range(6):
         for j in range(2):
             image = images[np.random.randint(0, len(images) - 1)]
             x = (i * 320, (i + 1) * 320)
             y = (j * 540, (j + 1) * 540)
-            dummy[y[0]:y[1], x[0]:x[1], :] = image
-    cv2.imshow('d', dummy)
+            raw_show[y[0]:y[1], x[0]:x[1], :] = image
     webcam = cv2.VideoCapture(0)
     webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
@@ -85,3 +84,14 @@ if __name__ == '__main__':
               xmin, ymin, xmax, ymax]]
         y_pred = model.predict(x)
         z = np.round(y_pred)[0]
+
+        j = z // 6
+        i = z % 6
+        x = (i * 320, (i + 1) * 320)
+        y = (j * 540, (j + 1) * 540)
+        dummy = raw_show.copy()
+        dummy[y[0]:y[1], x[0]:x[1], 0] = 0
+        dummy[y[0]:y[1], x[0]:x[1], 1] = 0
+        dummy[y[0]:y[1], x[0]:x[1], 2] = 255
+        cv2.imshow('d', dummy)
+
