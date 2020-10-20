@@ -17,9 +17,9 @@ def save(loc):
     os.makedirs('output', exist_ok=True)
     global n, gaze, left_pupil
     try:
-        if left_qr is None:
+        if len(left_qr) == 0:
             return
-        if right_qr is None:
+        if len(right_qr) == 0:
             return
         if left_pupil is None:
             return

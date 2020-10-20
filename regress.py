@@ -22,8 +22,8 @@ def get_data():
             if line != '':
                 a, b, c, d = line.split(',')
                 obj.extend((float(a), float(b), float(c), float(d)))
-        x.append(obj)
-    return x, y
+        x.append(np.array(obj))
+    return np.array(x, dtype='float32'), y
 
 
 if __name__ == '__main__':
