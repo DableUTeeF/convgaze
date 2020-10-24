@@ -18,11 +18,11 @@ def save(loc):
     global n, gaze, left_pupil
     try:
         if len(left_qr) == 0:
-            return
+            return None, None
         if len(right_qr) == 0:
-            return
+            return None, None
         if left_pupil is None:
-            return
+            return None, None
         cv2.imwrite(f'output/{loc}_{n}.jpg', raw)
         with open(f'output/{loc}_{n}.txt', 'w') as wr:
             # wr.write(f'{left_pupil[0]},{left_pupil[1]},{right_pupil[0]},{right_pupil[1]}\n')
@@ -34,13 +34,13 @@ def save(loc):
             wr.write(f'{right_qr[2][0]},{right_qr[2][1]},{right_qr[3][0]},{right_qr[3][1]}\n')
         n += 1
         os.system('play -nq -t alsa synth {} sine {}'.format(duration, freq))
-        x = [[gaze.eye_left.center[0], gaze.eye_left.center[1], gaze.eye_right.center[0], gaze.eye_right.center[1],
+        x = [gaze.eye_left.center[0], gaze.eye_left.center[1], gaze.eye_right.center[0], gaze.eye_right.center[1],
               gaze.pupil_left_coords()[0], gaze.pupil_left_coords()[1], gaze.pupil_right_coords()[0], gaze.pupil_right_coords()[1],
               left_qr[0][0], left_qr[0][1], left_qr[1][0], left_qr[1][1],
               left_qr[2][0], left_qr[2][1], left_qr[3][0], left_qr[3][1],
               right_qr[0][0], right_qr[0][1], right_qr[1][0], right_qr[1][1],
               right_qr[2][0], right_qr[2][1], right_qr[3][0], right_qr[3][1],
-              ]]
+              ]
         y = loc
         return x, y
     except IndexError:
@@ -51,15 +51,11 @@ def save(loc):
 
 if __name__ == '__main__':
     images = []
-    pth = r'/home/root1/Downloads/PrototypePage/PrototypePage/Pics'
-    for files in os.listdir(pth):
-        image = cv2.imread(os.path.join(pth, files))
-        image = cv2.resize(image, (320, 540))
-        images.append(image)
+    image = cv2.imread('/home/palm/Pictures/Screenshot from 2020-09-08 18-11-30.png')
+    image = cv2.resize(image, (320, 540))
     raw_show = np.zeros((1080, 1920, 3), dtype='uint8')
     for i in range(6):
         for j in range(2):
-            image = images[np.random.randint(0, len(images) - 1)]
             x = (i * 320, (i + 1) * 320)
             y = (j * 540, (j + 1) * 540)
             raw_show[y[0]:y[1], x[0]:x[1], :] = image
@@ -166,30 +162,29 @@ if __name__ == '__main__':
             if x1 is not None:
                 x.append(x1)
                 y.append(y1)
-            if trained:
-                try:
-                    x = [[gaze.eye_left.center[0], gaze.eye_left.center[1], gaze.eye_right.center[0], gaze.eye_right.center[1],
+            if trained and len(left_qr) > 0 and left_pupil is not None:
+                    xtest = [[gaze.eye_left.center[0], gaze.eye_left.center[1], gaze.eye_right.center[0], gaze.eye_right.center[1],
                           gaze.pupil_left_coords()[0], gaze.pupil_left_coords()[1], gaze.pupil_right_coords()[0], gaze.pupil_right_coords()[1],
                           left_qr[0][0], left_qr[0][1], left_qr[1][0], left_qr[1][1],
                           left_qr[2][0], left_qr[2][1], left_qr[3][0], left_qr[3][1],
                           right_qr[0][0], right_qr[0][1], right_qr[1][0], right_qr[1][1],
                           right_qr[2][0], right_qr[2][1], right_qr[3][0], right_qr[3][1],
                           ]]
-                    y_pred = model.predict(x)
+                    y_pred = model.predict(xtest)
                     z = np.round(y_pred)[0]
                     print(z)
                     j = z // 6
                     i = z % 6
-                    x = (i * 320, (i + 1) * 320)
-                    y = (j * 540, (j + 1) * 540)
+                    
+                    loc_x = (int(i * 320), int((i + 1) * 320))
+                    loc_y = (int(j * 540), int((j + 1) * 540))
                     dummy = raw_show.copy()
-                    dummy[y[0]:y[1], x[0]:x[1], 0] = 0
-                    dummy[y[0]:y[1], x[0]:x[1], 1] = 0
-                    dummy[y[0]:y[1], x[0]:x[1], 2] = 255
+                    dummy[loc_y[0]:loc_y[1], loc_x[0]:loc_x[1], 0] = 0
+                    dummy[loc_y[0]:loc_y[1], loc_x[0]:loc_x[1], 1] = 0
+                    dummy[loc_y[0]:loc_y[1], loc_x[0]:loc_x[1], 2] = 255
                     frame = cv2.resize(frame, (640, 360))
                     cv2.line(frame, (320, 0), (320, 360), (0, 255, 255))
-                except:
-                    pass
+                    cv2.imshow('d', dummy)
             else:
                 dummy = raw_show.copy()
                 frame = cv2.resize(frame, (640, 360))

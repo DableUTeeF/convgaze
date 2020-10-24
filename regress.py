@@ -13,7 +13,11 @@ def get_data():
             continue
         obj = []
         cls, no = files.split('_')
-        y.append(cls)
+        cls = int(cls)
+        j = cls // 6
+        i = cls % 6
+
+        y.append((i, j))
         txt = open(os.path.join('output/', files)).read().split('\n')
         # eye_center = txt[1]
         # pupil_coords = txt[2]
