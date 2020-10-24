@@ -14,21 +14,29 @@ while True:
     blue = frame[..., 0]
     green = frame[..., 1]
     red = frame[..., 2]
-    mask1 = green > red * 2.5
+    mask1 = green > red * 1.7
     idx = (mask1 == 0)
     image[idx] = 0
     mask2 = green > blue * 1.1
     idx = (mask2 == 0)
     image[idx] = 0
-    mask = np.sum(image, axis=-1) > 0
-    mask = mask.astype('uint8') * 255
+    orif_filterd = image.copy()
 
+    image = cv2.erode(image, np.ones((2, 2)))
+    image = cv2.dilate(image, np.ones((2, 2)))
+    image = cv2.dilate(image, np.ones((2, 2)))
+    image = cv2.dilate(image, np.ones((2, 2)))
+    image = cv2.dilate(image, np.ones((2, 2)))
+
+    # mask = np.sum(image, axis=-1) > 0
+    mask = image[..., 1] > 90
+    mask = mask.astype('uint8') * 255
     _, contours, h = cv2.findContours(mask, 1, 2)
     for cnt in contours:
 
         approx = cv2.approxPolyDP(cnt, 0.01 * cv2.arcLength(cnt, True), True)
         area = cv2.contourArea(cnt)
-        if area < 2000 or len(approx) != 4:
+        if area < 2000 : #or len(approx) != 4:
             continue
         print(len(approx))
         x = approx[..., 0]
@@ -43,7 +51,9 @@ while True:
                       (xmax, ymax), (0, 255, 0), 2)
 
     cv2.imshow('filtered', image)
+    cv2.imshow('orif_filterd', orif_filterd)
     cv2.imshow('raw', frame)
+    cv2.imshow('mask', mask)
     cv2.imshow('contour', ct)
     cv2.imshow('maskgreen', mask1.astype('uint8') * 255)
     cv2.imshow('maskred', mask2.astype('uint8') * 255)
