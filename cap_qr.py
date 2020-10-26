@@ -8,6 +8,9 @@ from gaze_tracking import GazeTracking
 import numpy as np
 import os
 from sklearn.linear_model import LinearRegression
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor
 
 duration = 0.1  # seconds
 freq = 440  # Hz
@@ -73,7 +76,7 @@ if __name__ == '__main__':
     detector = cv2.QRCodeDetector()
     x = []
     y = []
-    model = LinearRegression()
+    model = MultiOutputRegressor(MLPRegressor())
     trained = False
     while True:
         # We get a new frame from the webcam
@@ -155,8 +158,8 @@ if __name__ == '__main__':
                 x1, y1 = save(10)
             elif key == ord('h'):
                 x1, y1 = save(11)
-            elif key == ord('l'):
-                model = LinearRegression()
+            elif key == 32:
+                model = MultiOutputRegressor(MLPRegressor())
                 model.fit(x, y)
                 trained = True
             if x1 is not None:
