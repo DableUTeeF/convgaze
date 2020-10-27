@@ -31,6 +31,23 @@ def get_data():
     return np.array(x, dtype='float32'), np.array(y)
 
 
+def get_model():
+    model = models.Sequential(
+        [
+            # layers.Input(shape=(16,)),
+            layers.Dense(256, activation='relu', input_shape=(16, )),
+            layers.Dense(256, activation='relu'),
+            layers.Dense(2, activation='sigmoid'),
+        ]
+    )
+    model.compile(
+        optimizer='adam',
+        loss='mse',
+        metrics=['acc'],
+    )
+    return model
+
+
 if __name__ == '__main__':
     x, y = get_data()
     X_train, X_test, y_train, y_test = train_test_split(x, y)
