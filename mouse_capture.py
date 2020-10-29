@@ -6,6 +6,7 @@ from sklearn.multioutput import MultiOutputRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn.svm import SVR
 from sklearn.linear_model import LinearRegression
+import time
 
 
 def draw_events(event, x, y, flags, param):
@@ -28,6 +29,14 @@ def draw_events(event, x, y, flags, param):
             # wr.write(f'{gazecenter.eye_left.center[0]},{gazecenter.eye_left.center[1]},{gazecenter.eye_right.center[0]},{gazecenter.eye_right.center[1]}\n')
             # wr.write(f'{gazecenter.pupil_left_coords()[0]},{gazecenter.pupil_left_coords()[1]},{gazecenter.pupil_right_coords()[0]},{gazecenter.pupil_right_coords()[1]}\n')
             wr.write(f'{x},{y}')
+        a = x // 3
+        b = y // 3
+        target = np.zeros((384, 640, 1))
+        target[max(0, b - 31):b + 30, max(0, a - 31):a + 30] += 0.25
+        target[max(0, b - 15):b + 14, max(0, a - 15):a + 14] += 0.25
+        target[max(0, b - 7):b + 6, max(0, a - 7):a + 6] += 0.25
+        target[max(0, b - 3):b + 2, max(0, a - 3):a + 2] += 0.25
+        cv2.imwrite(f'output/mouse/{n}_target.jpg', (target * 255).astype('uint8'))
         n += 1
         # sample = [gaze1.eye_left.center[0], gaze1.eye_left.center[1], gaze1.eye_right.center[0], gaze1.eye_right.center[1],
         #           gaze1.pupil_left_coords()[0], gaze1.pupil_left_coords()[1], gaze1.pupil_right_coords()[0], gaze1.pupil_right_coords()[1],
@@ -59,16 +68,18 @@ if __name__ == '__main__':
     webcamcenter = cv2.VideoCapture(4)
     webcamcenter.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     webcamcenter.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-    n = len(os.listdir('/home/palm/PycharmProjects/true/output/mouse')) // 4
+    n = len(os.listdir('/home/palm/PycharmProjects/true/output/mouse')) // 5
     samples = []
     targets = []
     trained = False
     while True:
         # We get a new frame from the webcam
+        t = time.time()
         try:
             _, frame1 = webcam1.read()
             _, frame2 = webcam2.read()
             _, framecenter = webcamcenter.read()
+            t1 = time.time()
             raw1 = frame1.copy()
             raw2 = frame2.copy()
             rawcenter = framecenter.copy()
@@ -119,6 +130,7 @@ if __name__ == '__main__':
                 loc_x = int(i * 1920)
                 loc_y = int(j * 1080)
                 cv2.circle(dummy, (loc_x, loc_y), 20, (0, 0, 255), -1)
+            dummy = cv2.putText(dummy, f'{(t1 - t) * 1000} ms', (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2)
             cv2.imshow('d', dummy)
 
         except cv2.error:
