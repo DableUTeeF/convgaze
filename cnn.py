@@ -3,6 +3,35 @@ import numpy as np
 import cv2
 import os
 from sklearn.model_selection import train_test_split
+from torch import nn
+from torchvision.models import mobilenet_v2
+import natthaphon
+from torch.functional import F
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def softmax(x):
+    return np.exp(x) / np.sum(np.exp(x), axis=0)
+
+class Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.bacabone = mobilenet_v2(pretrained=True).features
+        self.output = nn.Conv2d(1280, 1, 1)
+
+    def forward(self, x):
+        x = self.bacabone(x)
+        x = self.output(x)
+        return x
+
+    @staticmethod
+    def loss(outputs, labels):
+        outputs = outputs.reshape(outputs.shape[0], -1)
+        labels = labels.reshape(labels.shape[0], -1)
+        loss = F.cross_entropy(outputs.double(), labels.double().max(1)[1])
+        return loss
+
 
 def get_model():
     inpl = layers.Input((360, 640, 3))
@@ -148,16 +177,16 @@ def out2d():
 def get_data():
     x = []
     y = []
-    for file in os.listdir('output/mouse/'):
+    for file in os.listdir('output/mouse_old3/'):
         if 'jpg' in file:
             continue
-        txt = open(os.path.join('output/mouse/', file)).read().split('\n')
+        txt = open(os.path.join('output/mouse_old3/', file)).read().split('\n')
         for line in txt:
             if len(line.split(',')) == 2:
                 a, b = line.split(',')
                 # y.append((int(a) / 1920, int(b) / 1080))
-                a = int(a) // 3 // 32
-                b = int(b) // 3 // 32
+                a = min(19, int(a) // 3 // 32)
+                b = min(10, int(b) // 3 // 32)
                 target = np.zeros((352 // 32, 640 // 32, 1))
                 target[b, a] = 1
                 # target[max(0, b-31):b+30, max(0, a-31):a+30] += 0.25
@@ -165,11 +194,11 @@ def get_data():
                 # target[max(0, b-7):b+6, max(0, a-7):a+6] += 0.25
                 # target[max(0, b-3):b+2, max(0, a-3):a+2] += 0.25
                 y.append(target)
-        im1 = cv2.imread(os.path.join('output/mouse/', file[:-4]+'_1.jpg'))
+        im1 = cv2.imread(os.path.join('output/mouse_old3/', file[:-4]+'_1.jpg'))
         im1 = cv2.resize(im1, (640, 384))
-        im2 = cv2.imread(os.path.join('output/mouse/', file[:-4]+'_2.jpg'))
+        im2 = cv2.imread(os.path.join('output/mouse_old3/', file[:-4]+'_2.jpg'))
         im2 = cv2.resize(im2, (640, 384))
-        im3 = cv2.imread(os.path.join('output/mouse/', file[:-4]+'_center.jpg'))
+        im3 = cv2.imread(os.path.join('output/mouse_old3/', file[:-4]+'_center.jpg'))
         im3 = cv2.resize(im3, (640, 384))
         # ims = np.concatenate((im1, im2, im3), axis=-1).astype('float32')
         ims = im3.astype('float32')
@@ -182,15 +211,19 @@ def get_data():
 
 if __name__ == '__main__':
     x, y = get_data()
+    x = np.rollaxis(x, -1, 1)
     X_train, X_test, y_train, y_test = train_test_split(x, y)
 
-    model = out2d()
-    model.summary()
-    model.fit(x[:-16], y[:-16], epochs=400, batch_size=8,
+    model = natthaphon.Model(Model())
+    # model.summary()
+    model.to('cuda')
+    model.compile('adam', loss=Model.loss)
+    model.fit(x[:-16], y[:-16], epoch=40, batch_size=8,
               # validation_data=[X_test, y_test]
               )
 
-    y_pred = model.predict(x)
+    y_pred = softmax(model.predict(x))
+    y_pred = np.einsum('aijk->ajki',y_pred)
     for i in range(y.shape[0]):
         # print(y_pred[i], y[i])
         pred = cv2.resize((y_pred[i] * 255).astype('uint8'), (640, 352))
