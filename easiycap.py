@@ -22,13 +22,6 @@ def save(loc):
 
 if __name__ == '__main__':
     images = []
-    pth = r'/home/root1/Downloads/PrototypePage/PrototypePage/Pics'
-    for files in os.listdir(pth):
-        image = cv2.imread(os.path.join(pth, files))
-        image = cv2.resize(image, (320, 540))
-        images.append(image)
-    dummy = np.zeros((1080, 1920, 3), dtype='uint8')
-
     webcam = cv2.VideoCapture(0)
     webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
