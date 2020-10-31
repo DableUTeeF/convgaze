@@ -10,10 +10,10 @@ class WebcamThread:
             self.cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         if f is not None:
             self.cap.set(cv2.CAP_PROP_FOCUS, 0)
-        if f is not None:
-            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        if f is not None:
-            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        if w is not None:
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, w)
+        if h is not None:
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
         _, self.frame = self.cap.read()
         self.name = name
         self.stopped = False

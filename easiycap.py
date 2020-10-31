@@ -6,7 +6,7 @@ Check the README.md for complete documentation.
 import cv2
 import numpy as np
 import os
-import time
+import webcam_thread as cam
 
 duration = 0.1  # seconds
 freq = 440  # Hz
@@ -22,9 +22,7 @@ def save(loc):
 
 if __name__ == '__main__':
     images = []
-    webcam = cv2.VideoCapture(0)
-    webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    webcam = cam.WebcamThread(0, "Face detector 1", w=1280, h=720).start()
     n = 0
     if os.path.exists('output'):
         n = len(os.listdir('output')) // 2
