@@ -2,8 +2,8 @@ import cv2
 
 if __name__ == '__main__':
     webcam = cv2.VideoCapture(0)
-    webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    # webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    # webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
     n = 0
     while True:
         # We get a new frame from the webcam

@@ -18,10 +18,11 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
         self.bacabone = mobilenet_v2(pretrained=True).features
-        self.output = nn.Conv2d(1280, 1, 1)
+        self.output = nn.Linear(1280, 4)
 
     def forward(self, x):
         x = self.bacabone(x)
+        x = nn.functional.adaptive_avg_pool2d(x, 1).reshape(x.shape[0], -1)
         x = self.output(x)
         return x
 
@@ -177,36 +178,25 @@ def out2d():
 def get_data():
     x = []
     y = []
-    for file in os.listdir('output/mouse_old3/'):
+    for file in os.listdir('output/mouse/'):
         if 'jpg' in file:
             continue
-        txt = open(os.path.join('output/mouse_old3/', file)).read().split('\n')
-        for line in txt:
-            if len(line.split(',')) == 2:
-                a, b = line.split(',')
-                # y.append((int(a) / 1920, int(b) / 1080))
-                a = min(19, int(a) // 3 // 32)
-                b = min(10, int(b) // 3 // 32)
-                target = np.zeros((352 // 32, 640 // 32, 1))
-                target[b, a] = 1
-                # target[max(0, b-31):b+30, max(0, a-31):a+30] += 0.25
-                # target[max(0, b-15):b+14, max(0, a-15):a+14] += 0.25
-                # target[max(0, b-7):b+6, max(0, a-7):a+6] += 0.25
-                # target[max(0, b-3):b+2, max(0, a-3):a+2] += 0.25
-                y.append(target)
-        im1 = cv2.imread(os.path.join('output/mouse_old3/', file[:-4]+'_1.jpg'))
-        im1 = cv2.resize(im1, (640, 384))
-        im2 = cv2.imread(os.path.join('output/mouse_old3/', file[:-4]+'_2.jpg'))
-        im2 = cv2.resize(im2, (640, 384))
-        im3 = cv2.imread(os.path.join('output/mouse_old3/', file[:-4]+'_center.jpg'))
-        im3 = cv2.resize(im3, (640, 384))
-        # ims = np.concatenate((im1, im2, im3), axis=-1).astype('float32')
-        ims = im3.astype('float32')
-        ims /= 127.5
-        ims -= 1
-        ims = ims[:352, :, :]
+        _, l0, l1 = file.split('.')[0].split('_')
+        if l0 == '0' and l1 == '0':
+            l = 0
+        elif l0 == '0' and l1 == '1':
+            l = 1
+        elif l0 == '1' and l1 == '0':
+            l = 2
+        elif l0 == '1' and l1 == '1':
+            l = 3
+        y.append(np.array(l))
+        im = cv2.imread(os.path.join('output/mouse/', file[:-4]+'.jpg'))
+        ims = im.astype('float32')
+        ims /= 255.0
+        # ims -= 1
         x.append(ims)
-    return np.array(x, dtype='float32'), np.array(y)
+    return np.array(x, dtype='float32'), np.array(y, dtype='int64')
 
 
 if __name__ == '__main__':
@@ -217,17 +207,17 @@ if __name__ == '__main__':
     model = natthaphon.Model(Model())
     # model.summary()
     model.to('cuda')
-    model.compile('adam', loss=Model.loss)
+    model.compile('adam', loss=nn.CrossEntropyLoss(), metric='acc')
     model.fit(x[:-16], y[:-16], epoch=40, batch_size=8,
               # validation_data=[X_test, y_test]
               )
-
-    y_pred = softmax(model.predict(x))
-    y_pred = np.einsum('aijk->ajki',y_pred)
+    y_pred = model.predict(x)
+    y_pred = sigmoid(y_pred)
+    # y_pred = np.einsum('aijk->ajki',y_pred)
     for i in range(y.shape[0]):
-        # print(y_pred[i], y[i])
-        pred = cv2.resize((y_pred[i] * 255).astype('uint8'), (640, 352))
-        true = cv2.resize((y[i] * 255).astype('uint8'), (640, 352))
-        cv2.imwrite(f'predict/{i}_pred.jpg', pred)
-        cv2.imwrite(f'predict/{i}_test.jpg', true)
+        print(y_pred[i], y[i])
+        # pred = cv2.resize((y_pred[i] * 255).astype('uint8'), (640, 352))
+        # true = cv2.resize((y[i] * 255).astype('uint8'), (640, 352))
+        # cv2.imwrite(f'predict/{i}_pred.jpg', pred)
+        # cv2.imwrite(f'predict/{i}_test.jpg', true)
 

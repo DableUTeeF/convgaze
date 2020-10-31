@@ -14,6 +14,10 @@ import numpy as np
 import cv2 as cv
 import os
 
+metrix = [[768.41339356, 0., 287.08190938], [0., 769.01503164, 240.83347034], [0., 0., 1.]]
+coefficients = [ 0.02291718, -0.54353385, 0.00239008, 0.01015446, 0.97942389]
+
+
 def splitfn(fn):
     path, fn = os.path.split(fn)
     name, ext = os.path.splitext(fn)
@@ -27,7 +31,7 @@ def main():
 
     args, img_mask = getopt.getopt(sys.argv[1:], '', ['debug=', 'square_size=', 'threads='])
     args = dict(args)
-    args.setdefault('--debug', './output/')
+    args.setdefault('--debug', './output/calibrate/')
     args.setdefault('--square_size', 1.0)
     args.setdefault('--threads', 4)
     if not img_mask:
